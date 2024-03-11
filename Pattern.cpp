@@ -1,99 +1,113 @@
-#include <GL/glut.h>
+#include <GL/freeglut.h>
 #include <cmath>
+#include <bits/c++config.h>
 
-int segmentCount = 8;
-float size = 20;
-float currentSize;
+int gridRows = 4;
+int gridCols = 4;
 
-void drawShape(float radius, int numSegments, float offset = 0)
+void drawWheel(float centerX, float centerY, float radius)
 {
-    glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < numSegments; ++i)
+    glBegin(GL_POLYGON);
+    for (int i = 0; i < 20; i++)
     {
-        float theta = 2.0f * 3.1415926f * float(i) / float(numSegments);
-
-        float x = radius * cosf(theta + offset);
-        float y = radius * sinf(theta + offset);
-
-        glVertex2f(x, y);
+        float theta = 2.0f * 3.1415926f * float(i) / float(20);
+        float x = radius * cosf(theta);
+        float y = radius * sinf(theta);
+        glVertex2f(x + centerX, y + centerY);
     }
     glEnd();
 }
 
-void drawPattern()
+void drawCar()
 {
-    for (int i = 0; i < 10; i++)
-    {
-        drawShape(currentSize * (float)i / 10, segmentCount);
-    }
+    // Car body
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_POLYGON);
+    glVertex2f(0.1, 0.1);
+    glVertex2f(0.1, 0.25);
+    glVertex2f(0.4, 0.25);
+    glVertex2f(0.4, 0.35);
+    glVertex2f(0.8, 0.35);
+    glVertex2f(0.9, 0.25);
+    glVertex2f(0.9, 0.1);
+    glEnd();
+
+    // Car windows
+    glColor3f(0.0, 0.0, 1.0);
+    glBegin(GL_POLYGON);
+    glVertex2f(0.4, 0.25);
+    glVertex2f(0.45, 0.3);
+    glVertex2f(0.55, 0.3);
+    glVertex2f(0.55, 0.25);
+    glEnd();
+
+    glBegin(GL_POLYGON);
+    glVertex2f(0.65, 0.25);
+    glVertex2f(0.65, 0.3);
+    glVertex2f(0.75, 0.3);
+    glVertex2f(0.8, 0.25);
+    glEnd();
+
+    // Wheels
+    glColor3f(0.0, 0.0, 0.0);
+    float wheelRadius = 0.05;
+    float wheel1CenterX = 0.3, wheel1CenterY = 0.1;
+    float wheel2CenterX = 0.7, wheel2CenterY = 0.1;
+
+    drawWheel(wheel1CenterX, wheel1CenterY, wheelRadius);
+    drawWheel(wheel2CenterX, wheel2CenterY, wheelRadius);
 }
 
-void display()
+void display(void)
 {
+    int width = glutGet(GLUT_WINDOW_WIDTH);
+    int height = glutGet(GLUT_WINDOW_HEIGHT);
+
     glClear(GL_COLOR_BUFFER_BIT);
-    glColor3f(0, 0, 0);
 
-    int numRepetitionsX = 10;
-    int numRepetitionsY = 10;
-
-    for (int i = 0; i < numRepetitionsX; ++i)
+    for (int row = 0; row < gridRows; ++row)
     {
-        for (int j = 0; j < numRepetitionsY; ++j)
+        for (int col = 0; col < gridCols; ++col)
         {
-            glPushMatrix();
-            glTranslatef(i * size, j * size, 0.0);
-            drawPattern();
-            glPopMatrix();
+            glViewport(col * width / gridCols, row * height / gridRows, width / gridCols, height / gridRows);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+
+            bool mirrorX = col % 2 != 0;
+            bool mirrorY = row % 2 != 0;
+            if (mirrorX && mirrorY)
+            {
+                glOrtho(1, 0, 1, 0, -1, 1);
+            }
+            else if (mirrorX)
+            {
+                glOrtho(1, 0, 0, 1, -1, 1);
+            }
+            else if (mirrorY)
+            {
+                glOrtho(0, 1, 1, 0, -1, 1);
+            }
+            else
+            {
+                glOrtho(0, 1, 0, 1, -1, 1);
+            }
+
+            drawCar();
         }
     }
 
-    glutSwapBuffers();
+    glFlush();
 }
 
-void handleKeyPress(unsigned char key, int x, int y)
+int main(int argc, char **argv)
 {
-    switch (key)
-    {
-    case 'w':
-        segmentCount++;
-        break;
-    case 's':
-        segmentCount--;
-        break;
-    case 'd':
-        currentSize++;
-        break;
-    case 'a':
-        currentSize--;
-        break;
-    }
-
-    glutPostRedisplay();
-}
-
-void init()
-{
-    glClearColor(1.0, 1.0, 1.0, 1.0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, (size) * 5, 0, (size) * 5);
-    glMatrixMode(GL_MODELVIEW);
-}
-
-int main(int argc, char *argv[])
-{
-    currentSize = size;
-
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_RGB);
-    glutInitWindowSize(600, 600);
-
-    glutCreateWindow("Pattern");
+    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
+    glutInitWindowSize(800, 800);
+    glutInitWindowPosition(100, 100);
+    glutCreateWindow("Mirrored Triangle Grid");
+    glClearColor(1.0, 1.0, 1.0, 1.0);
     glutDisplayFunc(display);
-    init();
-
-    glutKeyboardFunc(handleKeyPress);
-
     glutMainLoop();
     return 0;
 }
