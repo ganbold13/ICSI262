@@ -3,11 +3,11 @@
 float window_width = 500.0f;
 float window_height = 500.0f;
 
-float cMXSX(float x)
+float calculateX(float x)
 {
     return ((float)x) / window_width * 2.0f - 1.0f;
 }
-float cMYSY(float y)
+float calculateY(float y)
 {
     return 1.0f - ((float)y) / window_height * 2.0f;
 }
@@ -36,7 +36,7 @@ void clearScreen()
     {
         for (int y = 0; y < window_height; y++)
         {
-            glVertex2f(cMXSX((float)x), cMYSY((float)y));
+            glVertex2f(calculateX((float)x), calculateY((float)y));
         }
     }
     glEnd();
