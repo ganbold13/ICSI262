@@ -89,25 +89,76 @@ void SpecialKeys(int key, int x, int y)
     glutPostRedisplay();
 }
 
-// Function to draw a cube
-void drawCube(float size)
+void drawCube()
 {
-    glutSolidCube(size);
+    GLfloat vertices[][3] = {
+        {-0.5, -0.5, -0.5}, // 0
+        {0.5, -0.5, -0.5},  // 1
+        {0.5, 0.5, -0.5},   // 2
+        {-0.5, 0.5, -0.5},  // 3
+        {-0.5, -0.5, 0.5},  // 4
+        {0.5, -0.5, 0.5},   // 5
+        {0.5, 0.5, 0.5},    // 6
+        {-0.5, 0.5, 0.5}    // 7
+    };
+
+    GLuint indices[][4] = {
+        {0, 1, 2, 3}, // Front face
+        {1, 5, 6, 2}, // Right face
+        {5, 4, 7, 6}, // Back face
+        {4, 0, 3, 7}, // Left face
+        {3, 2, 6, 7}, // Top face
+        {4, 5, 1, 0}  // Bottom face
+    };
+
+    glBegin(GL_QUADS);
+    for (int i = 0; i < 6; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            glVertex3fv(vertices[indices[i][j]]);
+        }
+    }
+    glEnd();
 }
 
-void DrawLimb(float originX, float originY)
+void drawLimb(float originX, float originY)
 {
     // Upper
     glPushMatrix();
     glTranslatef(originX, originY, 0.0);
-    drawCube(0.2);
+    glutSolidCube(0.2);
     glTranslatef(0.0, -0.2, 0.0);
-    drawCube(0.2);
+    glutSolidCube(0.2);
     // Lower
     glTranslatef(0.0, -0.22, 0.0);
-    drawCube(0.2);
+    glutSolidCube(0.2);
     glTranslatef(0.0, -0.2, 0.0);
-    drawCube(0.2);
+    glutSolidCube(0.2);
+    glPopMatrix();
+}
+
+void drawHead(GLUquadric *pObj)
+{
+    // Head
+    glPushMatrix();
+    glTranslatef(0.0, 1.75, 0.0);
+    glutSolidCube(0.4);
+
+    glColor3f(0.0f, 0.0f, 0.0f);
+    glTranslatef(0.1f, 0.13f, 0.25f);
+    gluSphere(pObj, 0.02f, 26, 13);
+    glTranslatef(-0.2f, 0.0f, 0.0f);
+    gluSphere(pObj, 0.02f, 26, 13);
+
+    glPopMatrix();
+}
+
+void DrawBody()
+{
+    // Body
+    glColor3f(0.8f, 0.8f, 0.8f);
+    glPushMatrix();
+    glTranslatef(0.0, 1, 0.0);
+    drawCube();
     glPopMatrix();
 }
 
@@ -120,39 +171,20 @@ void drawRobot()
     pObj = gluNewQuadric();
     gluQuadricNormals(pObj, GLU_SMOOTH);
 
-    // Head
-    glPushMatrix();
-    glTranslatef(0.0, 1.75, 0.0);
-    drawCube(0.4);
+    drawHead(pObj);
 
-    glColor3f(0.0f, 0.0f, 0.0f);
-    glTranslatef(0.1f, 0.13f, 0.25f);
-    gluSphere(pObj, 0.02f, 26, 13);
-    glTranslatef(-0.2f, 0.0f, 0.0f);
-    gluSphere(pObj, 0.02f, 26, 13);
-
-    glPopMatrix();
-
-    // Body
-    glColor3f(0.8f, 0.8f, 0.8f);
-    glPushMatrix();
-    glTranslatef(0.0, 1, 0.0);
-    drawCube(1.0);
-    // glRotatef(90, 1.0f, 0.0f, 0.0f);
-    // gluCylinder(pObj, 0.5f, 0.5f, 1, 26, 13);
-    // gluDisk(pObj, 0.17f, 0.28f, 26, 13);
-    glPopMatrix();
+    DrawBody();
 
     // Left Arm
-    DrawLimb(-0.65, 1.3);
+    drawLimb(-0.65, 1.3);
 
     // Right Arm
-    DrawLimb(0.65, 1.3);
+    drawLimb(0.65, 1.3);
 
     // Left Leg
-    DrawLimb(-0.3, 0.33);
+    drawLimb(-0.3, 0.33);
     // Right Leg
-    DrawLimb(0.3, 0.33);
+    drawLimb(0.3, 0.33);
 }
 
 // Called to draw scene
