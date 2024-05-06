@@ -12,7 +12,9 @@
                 "${file}",
                 "-lGL",
                 "-lGLU",
-                "-lglut"
+                "-lglut",
+                "-lSOIL",  // Link SOIL library
+                "-I/usr/include/SOIL"  // Include SOIL headers
             ],
             "group": {
                 "kind": "build",
@@ -21,4 +23,3 @@
         }
     ]
 }
-
